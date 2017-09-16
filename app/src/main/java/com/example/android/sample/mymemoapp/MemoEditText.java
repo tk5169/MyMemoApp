@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 
 import java.nio.file.Path;
@@ -12,7 +13,9 @@ import java.nio.file.Path;
  * Created by Admin on 2017/09/14.
  */
 
-public class MemoEditText extends EditText {
+public class MemoEditText extends android.support.v7.widget.AppCompatEditText {
+//extendsの先は本はEditTextのみだったがエラーが出るので上記に変更した
+//どこかで不具合が出るようならここをチェックすること
 
     //ビットマスク
     //直線
@@ -104,4 +107,62 @@ public class MemoEditText extends EditText {
             //色を指定//
             mPaint.setColor(lineColer);
         }
+
+       @Override
+        public  void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+            //横幅
+            mMeasuredWidth = getMeasuredWidth();
+            //長さ
+            int measuredHeight  getMeasuredHeight();
+            //一行の高さ
+            mLineHeight = getLineHeight();
+
+            //画面内に何行表示できるか
+            mDisplayLineCount = measuredHeight / mLineHeight;
+
+            mView.getViewTreeObserver().addOnGlobalLayoutListener(
+                    new ViewTreeObserver.OnGlobalLayoutListener() {
+
+                        //レイアウトが行われると呼ばれる
+                        @Override
+                        public void onGlibalLayout() {
+                            //不要になったら削除する
+                            mView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                            //Viewのサイズを取得
+                            int width = mView.getMeasureWidth();
+                            int height = mView.getMeasureHeight();
+
+                        }
+                    });
+                    }
+            )
+
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            //パディング
+            int paddingTop = getExtendedPaddingTop();
+            //Y軸方向にスクロールされている量
+            int scrollY = getScrollY();
+            //画面上に表示されている最初の行
+            int firstVisibleLine = getLayout().getLineForVertical(scrollY);
+            //画面上に表示される最後の行
+            int lastVisibleLine = firstVisibleLine + mDisplayLineCount;
+
+            mPath.reset();
+            for(int i = firstVisibleLine; i <= lastVisibleLine; i++) {
+                //行の左端に移動
+                mPath.moveTo(0, i*mLineHeight + paddingTop);
+                //右端へ線を引く
+                mPath.lineTo(mMeasuredWidth, i * mLineHeight + paddingTop);
+
+            }
+            //Pathの描画
+            canvas.drawPath(mPath, mPaint);
+
+            super.onDraw(canvas);
+
     }
